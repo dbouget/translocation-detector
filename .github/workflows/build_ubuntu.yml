@@ -69,5 +69,5 @@ jobs:
           uses: actions/checkout@v4
 
         - name: Inference unit test
-          run: cd ${{github.workspace}}/tests && python execution_test.py
+          run: cd ${{github.workspace}}/tests && python processing_test.py
 

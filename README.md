@@ -5,9 +5,12 @@
 
 ```
 pip install git+https://github.com/dbouget/translocation-detector.git
-pip install -e .
 ```
 
+Alternatively, after manually cloning the repository
+```
+pip install -e .
+```
 
 # Usage
 
