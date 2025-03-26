@@ -1,0 +1,5 @@
+nd2reader
+numpy
+matplotlib
+scikit-image
+opencv-python

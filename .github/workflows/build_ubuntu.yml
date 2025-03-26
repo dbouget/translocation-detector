@@ -1,0 +1,72 @@
+name: Build Ubuntu
+
+on:
+  push:
+    branches: [ master,update ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            TARGET: ubuntu
+            CMD_BUILD: python setup.py bdist_wheel --plat-name manylinux1_x86_64
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Install dependencies
+        run: pip install wheel setuptools
+
+      - name: Built wheel for ${{matrix.TARGET}}
+        run: ${{matrix.CMD_BUILD}}
+
+      - name: Upload Python wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: Python wheel
+          path: ${{github.workspace}}/dist/translocdet-*.whl
+          if-no-files-found: error
+
+  test:
+    needs: build
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+        - name: Set up Python ${{ matrix.python-version }}
+          uses: actions/setup-python@v5
+          with:
+            python-version: ${{ matrix.python-version }}
+
+        - name: Download artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: "Python wheel"
+
+        - name: Install wheel
+          run: pip install --upgrade pip
+               pip install --find-links=${{github.workspace}} --no-cache-dir --force-reinstall translocdet-*
+          shell: bash
+
+        - name: Test CLI
+          run: translocdet --help
+
+        - name: Clone repo
+          uses: actions/checkout@v4
+
+        - name: Inference unit test
+          run: cd ${{github.workspace}}/tests && python execution_test.py
+
